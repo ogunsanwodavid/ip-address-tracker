@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import iconArrow from "../assets/icon-arrow.svg";
 
 function Form({ inputRef, ipAddress, setInput, handleFormSubmit }) {
-  /***** set input value to user's ipaddress on mount */
+  /***** set input value to user's ipaddress only on mount */
   useEffect(() => {
     if (inputRef.current) {
       inputRef.current.value = ipAddress;
@@ -21,7 +21,7 @@ function Form({ inputRef, ipAddress, setInput, handleFormSubmit }) {
   };
 
   return (
-    <div className="w-full max-w-[450px] mx-auto">
+    <div className="w-full max-w-[450px] mx-auto mb-4">
       <form className="w-full flex h-10 rounded-lg overflow-hidden cursor-pointer md:h-12">
         <input
           className="w-full h-full p-4 font-regular text-very-dark-gray cursor-pointer md:p-5"
@@ -29,7 +29,7 @@ function Form({ inputRef, ipAddress, setInput, handleFormSubmit }) {
           name="form"
           id="form"
           ref={inputRef}
-          placeholder="Search for any IP Address or domain"
+          placeholder="Search for any IP Address, domain or email address"
           onChange={handleInputChange}
           onKeyDown={handleKeyDown}
         />

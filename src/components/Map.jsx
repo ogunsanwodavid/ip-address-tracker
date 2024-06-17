@@ -3,7 +3,7 @@ import customMarker from "../assets/icon-location.svg";
 import { Icon } from "leaflet";
 import { useEffect } from "react";
 
-function Map({ lat, lng }) {
+function Map({ lat, lng, location }) {
   let markerIcon = new Icon({
     iconUrl: customMarker,
     iconRetinaUrl: customMarker,
@@ -13,24 +13,28 @@ function Map({ lat, lng }) {
   });
 
   return (
-    <MapContainer
-      className="w-full h-full"
-      center={[lat, lng]}
-      zoom={13}
-      scrollWheelZoom={false}
-    >
-      <TileLayer
-        attribution="Google Maps"
-        url="https://www.google.cn/maps/vt?lyrs=m@189&gl=cn&x={x}&y={y}&z={z}"
-      />
-      <Marker position={[lat, lng]} icon={markerIcon}>
-        <Popup>
-          A pretty CSS3 popup. <br /> Easily customizable.
-        </Popup>
-      </Marker>
+    <div className="relative h-full z-0">
+      <MapContainer
+        className="h-full"
+        style={{
+          height: "100%",
+          position: "relative",
+        }}
+        center={[lat, lng]}
+        zoom={12}
+        scrollWheelZoom={false}
+      >
+        <TileLayer
+          attribution="Google Maps"
+          url="https://www.google.cn/maps/vt?lyrs=m@189&gl=cn&x={x}&y={y}&z={z}"
+        />
+        <Marker position={[lat, lng]} icon={markerIcon}>
+          <Popup>{location}</Popup>
+        </Marker>
 
-      <ChangeCenter lat={lat} lng={lng} />
-    </MapContainer>
+        <ChangeCenter lat={lat} lng={lng} />
+      </MapContainer>
+    </div>
   );
 }
 

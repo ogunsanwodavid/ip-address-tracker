@@ -6,11 +6,16 @@ import InfoDisplay from "./components/InfoDisplay";
 import Map from "./components/Map";
 import { useRef, useState } from "react";
 import { useEffect } from "react";
+import ErrorMessage from "./components/ErrorMessage";
+import Loading from "./components/Loading";
 
 function App() {
   const [isDesktopWidth, setIsDesktopWidth] = useState(
     window.innerWidth >= 780
   );
+
+  const [isLoading, setIsLoading] = useState(false);
+
   const [input, setInput] = useState("");
   const inputRef = useRef(null);
 
@@ -24,7 +29,10 @@ function App() {
 
   const apiKey = import.meta.env.VITE_MY_API_KEY;
   var fetchURL = `https://geo.ipify.org/api/v2/country,city?apiKey=${apiKey}&ipAddress`;
+  const [error, setError] = useState("");
+  const [displayError, setDisplayError] = useState(false);
 
+  /**** This effect handles window width changes */
   useEffect(() => {
     const handleResize = () => {
       setIsDesktopWidth(window.innerWidth >= 780);
@@ -41,6 +49,7 @@ function App() {
     };
   }, [setIsDesktopWidth]);
 
+  /*** This function checks the input the user entered */
   function detectInputType(input) {
     // Regular expression patterns
     const ipPattern =
@@ -62,17 +71,24 @@ function App() {
   useEffect(() => {
     async function fetchIPAddress() {
       try {
+        setIsLoading(true);
         const res = await fetch(fetchURL);
+
+        if (!res.ok)
+          throw new Error("Connection error - can't fetch vital information");
+
         const data = await res.json();
+
         setIPAddress(data.ip);
         setLocation(`${data.location.city} , ${data.location.country}`);
         setTimeZone(`UTC ${data.location.timezone}`);
         setIsp(data.isp);
         setLat(data.location.lat);
         setLng(data.location.lng);
-        console.log(data);
-      } catch (error) {
-        console.error(error);
+      } catch (err) {
+        setError("Connection error - can't fetch vital information");
+      } finally {
+        setIsLoading(false);
       }
     }
 
@@ -81,10 +97,18 @@ function App() {
     }
   }, [fetchURL]);
 
+  /****** This handles the form submission */
   async function handleFormSubmit(e) {
     e.preventDefault();
 
-    /* if (detectInputType(input) === "Unknown") return; */
+    if (detectInputType(input) === "Unknown") {
+      setError(
+        "Invalid input - must be an IP Address , domain name or email address"
+      );
+      return;
+    }
+
+    setIsLoading(true);
 
     fetchURL = `
     https://geo.ipify.org/api/v2/country,city?apiKey=${apiKey}${
@@ -95,22 +119,38 @@ function App() {
 
     try {
       const res = await fetch(fetchURL);
+
+      if (!res.ok)
+        throw new Error("Connection error - can't fetch vital information");
+
       const data = await res.json();
+
       setIPAddress(data.ip);
       setLocation(`${data.location.city} , ${data.location.country}`);
       setTimeZone(`UTC ${data.location.timezone}`);
       setIsp(data.isp);
       setLat(data.location.lat);
       setLng(data.location.lng);
-    } catch (error) {
-      console.error(error);
+    } catch (err) {
+      setError("Something went wrong with fetching vital information");
+    } finally {
+      setIsLoading(false);
     }
   }
 
+  /*** This checks for error and displays the error message immediately */
+  useEffect(() => {
+    if (error) {
+      setDisplayError(true);
+    } else {
+      setDisplayError(false);
+    }
+  }, [setDisplayError, error]);
+
   return (
     <div className="relative h-screen font-rubik flex flex-col">
-      <section
-        className="relative w-full h-[250px] p-6 flex flex-col space-y-4 md:p-8 md:h-[280px]"
+      <div
+        className="relative w-full h-[270px] p-6 pb-0 flex flex-col z-10 md:p-8 md:h-[280px]"
         style={{
           backgroundImage: `url(${
             isDesktopWidth ? patternBgDesktop : patternBgMobile
@@ -118,10 +158,9 @@ function App() {
           backgroundPosition: "center",
           backgroundRepeat: "no-repeat",
           backgroundSize: "cover",
-          zIndex: 10,
         }}
       >
-        <h1 className="w-max text-white mx-auto font-semibold text-xl md:text-2xl">
+        <h1 className="w-max text-white mx-auto mb-4 font-semibold text-xl md:text-2xl">
           IP Address Tracker
         </h1>
         <Form
@@ -130,6 +169,7 @@ function App() {
           ipAddress={ipAddress}
           setInput={setInput}
           handleFormSubmit={handleFormSubmit}
+          detectInputType={detectInputType}
         />
         <InfoDisplay
           ipAddress={ipAddress}
@@ -137,9 +177,19 @@ function App() {
           timeZone={timeZone}
           isp={isp}
         />
-      </section>
+      </div>
 
-      <Map lat={lat} lng={lng} />
+      <Map lat={lat} lng={lng} location={location} />
+
+      {displayError && (
+        <ErrorMessage
+          message={error}
+          setDisplayError={setDisplayError}
+          setError={setError}
+        />
+      )}
+
+      {isLoading && <Loading />}
     </div>
   );
 }
