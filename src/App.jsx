@@ -150,7 +150,7 @@ function App() {
   return (
     <div className="relative h-screen font-rubik flex flex-col">
       <div
-        className="relative w-full h-[270px] p-6 pb-0 flex flex-col z-10 md:p-8 md:h-[280px]"
+        className="relative w-full h-[400px] p-6 pb-0 flex flex-col z-10 md:p-8 md:h-[280px]"
         style={{
           backgroundImage: `url(${
             isDesktopWidth ? patternBgDesktop : patternBgMobile
